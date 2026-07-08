@@ -29,6 +29,7 @@ ApplicationWindow {
         }
 
         spacing: 5
+        property int toolTipDelay: 750
         Rectangle {
             id: listenBlob
             Layout.leftMargin: 5
@@ -37,6 +38,11 @@ ApplicationWindow {
             Layout.preferredHeight: radius*2
             radius: 12
             color: vncProxyServer.listening ? "green" : "red"
+
+            HoverHandler { id: lBlobHH }
+            ToolTip.visible: lBlobHH.hovered
+            ToolTip.delay: parent.toolTipDelay
+            ToolTip.text: vncProxyServer.listening ? "Listening" : "Not Listening"
         }
         Rectangle {
             id: viewerConnectedBlob
@@ -45,6 +51,10 @@ ApplicationWindow {
             Layout.preferredHeight: radius*2
             radius: 12
             color: vncProxyServer.viewerConnected ? "green" : "red"
+            HoverHandler { id: vcBlobHH }
+            ToolTip.visible: vcBlobHH.hovered
+            ToolTip.delay: parent.toolTipDelay
+            ToolTip.text: vncProxyServer.viewerConnected ? "Viewer Connected" : "Viewer Disconnected"
         }
         Rectangle {
             id: deviceUartConnectedBlob
@@ -53,6 +63,10 @@ ApplicationWindow {
             Layout.preferredHeight: radius*2
             radius: 12
             color: vncProxyServer.viewerConnected ? headerRowLayout.socketStateColor(vncProxyServer.sessionBroker.deviceUartSocketState, "deviceUart") :  "red";
+            HoverHandler { id: duBlobHH }
+            ToolTip.visible: duBlobHH.hovered
+            ToolTip.delay: parent.toolTipDelay
+            ToolTip.text: "Device UART"
         }
         Rectangle {
             id: deviceVncConnectedBlob
@@ -61,6 +75,10 @@ ApplicationWindow {
             Layout.preferredHeight: radius*2
             radius: 12
             color: vncProxyServer.viewerConnected ? headerRowLayout.socketStateColor(vncProxyServer.sessionBroker.deviceVncSocketState, "deviceVnc") :  "red";
+            HoverHandler { id: dvBlobHH }
+            ToolTip.visible: dvBlobHH.hovered
+            ToolTip.delay: parent.toolTipDelay
+            ToolTip.text: "Device VNC"
         }
 
         Item {
