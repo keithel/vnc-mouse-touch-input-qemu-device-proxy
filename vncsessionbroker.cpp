@@ -6,8 +6,10 @@ VncSessionBroker::VncSessionBroker(QTcpSocket *viewerSocketParent, quint16 devic
     , m_viewerSocket(viewerSocketParent)
     , m_deviceVncPort(deviceVncPort)
     , m_deviceUartPort(deviceUartPort)
+    , m_deviceUartSocket(new QTcpSocket(this))
+    , m_deviceVncSocket(new QTcpSocket(this))
+    , m_tap(new RfbClientTap(this))
 {
-    m_deviceUartSocket = new QTcpSocket(this);
     m_deviceUartConnectedConnection = connect(m_deviceUartSocket, &QTcpSocket::connected, this, [this, deviceUartPort]() {
         qDebug() << "Connected to device UART port" << deviceUartPort << "to deliver pointer events.";
     });
@@ -19,7 +21,6 @@ VncSessionBroker::VncSessionBroker(QTcpSocket *viewerSocketParent, quint16 devic
     });
     m_deviceUartSocket->connectToHost(QHostAddress("127.0.0.1"), m_deviceUartPort, QTcpSocket::OpenModeFlag::WriteOnly);
 
-    m_deviceVncSocket = new QTcpSocket(this);
     m_deviceVncSocketStateConnection = connect(m_deviceVncSocket, &QTcpSocket::stateChanged, this, [this](QAbstractSocket::SocketState state) {
         emit deviceVncSocketStateChanged(state);
     });
@@ -33,6 +34,9 @@ VncSessionBroker::VncSessionBroker(QTcpSocket *viewerSocketParent, quint16 devic
 
     m_deviceReadyReadConnection = connect(m_deviceVncSocket, &QTcpSocket::readyRead, this, &VncSessionBroker::deviceToViewerPump);
     m_deviceDisconnectedConnection = connect(m_deviceVncSocket, &QTcpSocket::disconnected, this, &VncSessionBroker::handleDeviceDisconnected);
+
+    connect(m_tap, &RfbClientTap::pointerEvent, this, &VncSessionBroker::sendUartTouchPacket);
+    // m_tap->reset();
 }
 
 VncSessionBroker::~VncSessionBroker()
@@ -66,13 +70,7 @@ void VncSessionBroker::viewerToDevicePump()
 
     QByteArray data = m_viewerSocket->readAll();
     m_deviceVncSocket->write(data);
-
-    QByteArray rfbPointerUartPacket = parseRfbStream(data);
-
-    if (!rfbPointerUartPacket.isEmpty() && m_deviceUartSocket && m_deviceUartSocket->isOpen()) {
-        m_deviceUartSocket->write(rfbPointerUartPacket);
-        qDebug() << "Forwarded pointer event via UART ->" << rfbPointerUartPacket;
-    }
+    m_tap->feed(data);
 }
 
 void VncSessionBroker::deviceToViewerPump()
@@ -115,22 +113,14 @@ void VncSessionBroker::handleDeviceDisconnected()
         m_viewerSocket->disconnectFromHost();
 }
 
-RfbPointerEventPacket VncSessionBroker::parseRfbStream(const QByteArray &buffer)
+void VncSessionBroker::sendUartTouchPacket(quint16 x, quint16 y, quint8 buttons)
 {
-    RfbPointerEventPacket pointerEventPacket;
-    if (buffer.isEmpty())
-        return pointerEventPacket;
+    if (!m_deviceUartSocket || !m_deviceUartSocket->isOpen())
+        return;
 
-    if (static_cast<quint8>(buffer.at(0)) == 0x05 && buffer.size() >= 6) {
-        quint8 buttonMask = buffer.at(1);
+    RfbPointerEventPacket packet;
+    packet.setPointerData(x, y, buttons);
+    m_deviceUartSocket->write(packet);
 
-        // Big Endian 16-bit ints.
-        quint16 x = (static_cast<quint8>(buffer.at(2)) << 8) | static_cast<quint8>(buffer.at(3));
-        quint16 y = (static_cast<quint8>(buffer.at(4)) << 8) | static_cast<quint8>(buffer.at(5));
-
-        // x, y bounds checking/clamping could be done here.
-
-        pointerEventPacket.setPointerData(x, y, buttonMask);
-    }
-    return pointerEventPacket;
+    qDebug() << "Forwarded pointer event via UART ->" << packet;
 }

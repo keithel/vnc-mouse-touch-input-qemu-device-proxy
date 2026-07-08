@@ -6,6 +6,7 @@
 #include <QTcpSocket>
 
 #include "rfbpointereventpacket.h"
+#include "rfbclienttap.h"
 
 class VncSessionBroker : public QObject
 {
@@ -35,7 +36,6 @@ private slots:
     void handleDeviceDisconnected();
 
 private:
-    RfbPointerEventPacket parseRfbStream(const QByteArray &buffer);
     void sendUartTouchPacket(quint16 x, quint16 y, quint8 buttons);
 
 private:
@@ -44,6 +44,7 @@ private:
     quint16 m_deviceUartPort = 0;
     QPointer<QTcpSocket> m_deviceUartSocket = nullptr;
     QPointer<QTcpSocket> m_deviceVncSocket = nullptr;
+    QPointer<RfbClientTap> m_tap = nullptr;
 
     QMetaObject::Connection m_deviceUartConnectedConnection;
     QMetaObject::Connection m_deviceUartSocketStateConnection;

@@ -20,6 +20,7 @@ qt_add_qml_module(appvnc_mouse_touch_input_qtmcus_proxy
         vncproxyserver.h vncproxyserver.cpp
         vncsessionbroker.h vncsessionbroker.cpp
         rfbpointereventpacket.h rfbpointereventpacket.cpp
+        rfbclienttap.h rfbclienttap.cpp
         qmlqabstractsocketforeign.h
 )
 
