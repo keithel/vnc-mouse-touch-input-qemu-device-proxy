@@ -62,7 +62,7 @@ ApplicationWindow {
             Layout.preferredWidth: radius*2
             Layout.preferredHeight: radius*2
             radius: 12
-            color: vncProxyServer.viewerConnected ? headerRowLayout.socketStateColor(vncProxyServer.sessionBroker.deviceUartSocketState, "deviceUart") :  "red";
+            color: vncProxyServer.sessionBroker ? headerRowLayout.socketStateColor(vncProxyServer.sessionBroker.deviceUartSocketState, "deviceUart") :  "red";
             HoverHandler { id: duBlobHH }
             ToolTip.visible: duBlobHH.hovered
             ToolTip.delay: parent.toolTipDelay
@@ -74,7 +74,7 @@ ApplicationWindow {
             Layout.preferredWidth: radius*2
             Layout.preferredHeight: radius*2
             radius: 12
-            color: vncProxyServer.viewerConnected ? headerRowLayout.socketStateColor(vncProxyServer.sessionBroker.deviceVncSocketState, "deviceVnc") :  "red";
+            color: vncProxyServer.sessionBroker ? headerRowLayout.socketStateColor(vncProxyServer.sessionBroker.deviceVncSocketState, "deviceVnc") :  "red";
             HoverHandler { id: dvBlobHH }
             ToolTip.visible: dvBlobHH.hovered
             ToolTip.delay: parent.toolTipDelay
