@@ -7,7 +7,7 @@ ApplicationWindow {
     width: 640
     height: 480
     visible: true
-    title: qsTr("Hello World")
+    title: qsTr("RFB Pointer Event VNC Proxy")
 
     header: RowLayout {
         id: headerRowLayout
