@@ -32,12 +32,6 @@ VncSessionBroker::VncSessionBroker(QTcpSocket *viewerSocketParent, quint16 devic
 
     m_deviceReadyReadConnection = connect(m_deviceVncSocket, &QTcpSocket::readyRead, this, &VncSessionBroker::deviceToViewerPump);
     m_deviceDisconnectedConnection = connect(m_deviceVncSocket, &QTcpSocket::disconnected, this, &VncSessionBroker::handleDeviceDisconnected);
-
-    // if (m_viewerSocket->waitForReadyRead(0))
-    //     QMetaObject::invokeMethod(this, &VncSessionBroker::viewerToDevicePump, Qt::QueuedConnection);
-
-    // if (m_deviceVncSocket->waitForReadyRead(0))
-    //     QMetaObject::invokeMethod(this, &VncSessionBroker::deviceToViewerPump, Qt::QueuedConnection);
 }
 
 VncSessionBroker::~VncSessionBroker()
@@ -47,11 +41,23 @@ VncSessionBroker::~VncSessionBroker()
 
 void VncSessionBroker::disconnect()
 {
-    // Disconnect all sockets.
+    // Close all sockets.
+    QObject::disconnect(m_viewerReadyReadConnection);
+    QObject::disconnect(m_viewerDisconnectedConnection);
+    QObject::disconnect(m_deviceReadyReadConnection);
+    QObject::disconnect(m_deviceUartConnectedConnection);
+
+    if (m_deviceVncSocket)
+        m_deviceVncSocket->disconnectFromHost();
+    if (m_viewerSocket)
+        m_deviceUartSocket->disconnectFromHost();
+
+    // emit disconnected();
 }
 
 void VncSessionBroker::viewerToDevicePump()
 {
+    qDebug() << "viewerToDevicePump";
     if (!m_viewerSocket || !m_deviceVncSocket)
         return;
 
@@ -92,6 +98,8 @@ void VncSessionBroker::handleViewerDisconnected()
     qDebug() << "Viewer disconnected.";
     if (m_deviceVncSocket)
         m_deviceVncSocket->disconnectFromHost();
+
+    emit disconnected();
 }
 
 void VncSessionBroker::handleDeviceDisconnected()
@@ -118,8 +126,5 @@ RfbPointerEventPacket VncSessionBroker::parseRfbStream(const QByteArray &buffer)
 
         pointerEventPacket.setPointerData(x, y, buttonMask);
     }
-    // else {
-    //     qWarning() << "VncSessionBroker::parseRfbStream: Unknown rfb stream buffer";
-    // }
     return pointerEventPacket;
 }

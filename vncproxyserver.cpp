@@ -77,7 +77,7 @@ void VncProxyServer::handleNewConnection()
     if (m_viewerSocket) {
         m_viewerSocket->disconnectFromHost();
         m_viewerSocket = nullptr;
-        emit viewerConnectedChanged(false);
+        // emit viewerConnectedChanged(false);
     }
 
     if (m_sessionBroker) {
@@ -86,14 +86,32 @@ void VncProxyServer::handleNewConnection()
         m_sessionBroker = nullptr;
     }
 
-    QTimer::singleShot(2000, [this](){
-        m_viewerSocket = nextPendingConnection();
-        m_sessionBroker = new VncSessionBroker(m_viewerSocket, m_vncPort, m_uartPort);
-        emit sessionBrokerChanged();
-
-        if (m_viewerSocket != nullptr)
-            emit viewerConnectedChanged(true);
-
-        qDebug() << "VNC Viewer connected from" << m_viewerSocket->peerAddress();
+    m_viewerSocket = nextPendingConnection();
+    m_sessionBroker = new VncSessionBroker(m_viewerSocket, m_vncPort, m_uartPort);
+    emit sessionBrokerChanged();
+    m_sessionBrokerDisconnectedConnection = connect(m_sessionBroker, &VncSessionBroker::disconnected, this, [this](){
+        qDebug() << "sessionBroker disconnected.";
+        m_viewerSocket->disconnectFromHost();
+        if (m_sessionBroker) {
+            QTimer::singleShot(1000, [this](){
+                VncSessionBroker* tmp = m_sessionBroker;
+                m_sessionBroker = nullptr;
+                emit sessionBrokerChanged();
+                delete tmp;
+            });
+        }
     });
+
+    connect(m_viewerSocket, &QTcpSocket::disconnected, this, [this](){
+        qDebug() << "VncProxyServer viewerSocket disconnected handler";
+
+        delete m_viewerSocket;
+        m_viewerSocket = nullptr;
+        emit viewerConnectedChanged(false);
+    });
+
+    if (m_viewerSocket != nullptr)
+        emit viewerConnectedChanged(true);
+
+    qDebug() << "VNC Viewer connected from" << m_viewerSocket->peerAddress();
 }

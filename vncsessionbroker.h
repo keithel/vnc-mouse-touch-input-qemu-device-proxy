@@ -26,6 +26,7 @@ public:
 signals:
     void deviceUartSocketStateChanged(QAbstractSocket::SocketState state);
     void deviceVncSocketStateChanged(QAbstractSocket::SocketState state);
+    void disconnected();
 
 private slots:
     void viewerToDevicePump();

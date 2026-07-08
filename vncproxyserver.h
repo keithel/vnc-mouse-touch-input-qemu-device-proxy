@@ -54,6 +54,7 @@ private:
 
     QTcpSocket *m_viewerSocket = nullptr;
     QMetaObject::Connection m_listenConnection;
+    QMetaObject::Connection m_sessionBrokerDisconnectedConnection;
 };
 
 #endif // VNCPROXYSERVER_H
