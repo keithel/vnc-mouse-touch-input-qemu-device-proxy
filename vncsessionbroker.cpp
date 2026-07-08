@@ -3,6 +3,8 @@
 VncSessionBroker::VncSessionBroker(QTcpSocket *viewerSocketParent, quint16 deviceVncPort, quint16 deviceUartPort)
     : QObject{viewerSocketParent}
     , m_viewerSocket(viewerSocketParent)
+    , m_deviceVncPort(deviceVncPort)
+    , m_deviceUartPort(deviceUartPort)
 {
     m_deviceUartSocket = new QTcpSocket(this);
     m_deviceUartConnectedConnection = connect(m_deviceUartSocket, &QTcpSocket::connected, this, [this, deviceUartPort]() {
