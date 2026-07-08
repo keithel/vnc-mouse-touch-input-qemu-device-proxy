@@ -92,7 +92,7 @@ void VncProxyServer::handleNewConnection()
         qDebug() << "sessionBroker disconnected.";
         m_viewerSocket->disconnectFromHost();
         if (m_sessionBroker) {
-            QTimer::singleShot(1000, [this](){
+            QTimer::singleShot(0, [this](){
                 m_sessionBroker = nullptr; // It will be deleted when m_viewerSocket is deleted
                 emit sessionBrokerChanged();
             });
@@ -102,7 +102,7 @@ void VncProxyServer::handleNewConnection()
     connect(m_viewerSocket, &QTcpSocket::disconnected, this, [this](){
         qDebug() << "VncProxyServer viewerSocket disconnected handler";
 
-        delete m_viewerSocket;
+        m_viewerSocket->deleteLater();
         m_viewerSocket = nullptr;
         emit viewerConnectedChanged(false);
     });
