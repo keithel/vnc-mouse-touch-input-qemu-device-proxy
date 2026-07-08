@@ -42,8 +42,8 @@ private:
     QTcpSocket *m_viewerSocket = nullptr;
     quint16 m_deviceVncPort = 0;
     quint16 m_deviceUartPort = 0;
-    QTcpSocket *m_deviceUartSocket = nullptr;
-    QTcpSocket *m_deviceVncSocket = nullptr;
+    QPointer<QTcpSocket> m_deviceUartSocket = nullptr;
+    QPointer<QTcpSocket> m_deviceVncSocket = nullptr;
 
     QMetaObject::Connection m_deviceUartConnectedConnection;
     QMetaObject::Connection m_deviceUartSocketStateConnection;
