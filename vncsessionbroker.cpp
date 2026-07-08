@@ -50,10 +50,10 @@ void VncSessionBroker::disconnect()
 
     if (m_deviceVncSocket)
         m_deviceVncSocket->disconnectFromHost();
-    if (m_viewerSocket)
+    if (m_deviceUartSocket)
         m_deviceUartSocket->disconnectFromHost();
 
-    // emit disconnected();
+    // emit disconnected(); // handleViewerDisconnected emits this
 }
 
 void VncSessionBroker::viewerToDevicePump()
