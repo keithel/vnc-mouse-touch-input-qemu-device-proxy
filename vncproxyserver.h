@@ -50,9 +50,10 @@ private:
     int m_vncPort = 5900;
     int m_uartPort = 12345;
     bool m_listening = false;
-    VncSessionBroker *m_sessionBroker = nullptr;
 
-    QTcpSocket *m_viewerSocket = nullptr;
+    QPointer<VncSessionBroker> m_sessionBroker = nullptr;
+    QPointer<QTcpSocket> m_viewerSocket = nullptr;
+
     QMetaObject::Connection m_listenConnection;
     QMetaObject::Connection m_sessionBrokerDisconnectedConnection;
 };
