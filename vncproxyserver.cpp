@@ -86,6 +86,11 @@ void VncProxyServer::handleNewConnection()
     }
 
     m_viewerSocket = nextPendingConnection();
+    if (m_viewerSocket.isNull()) {
+        qWarning() << "handleNewConnection got a null nextPendingConnection()";
+        return;
+    }
+
     m_sessionBroker = new VncSessionBroker(m_viewerSocket, m_vncPort, m_uartPort);
     emit sessionBrokerChanged();
     m_sessionBrokerDisconnectedConnection = connect(m_sessionBroker, &VncSessionBroker::disconnected, this, [this](){
@@ -102,8 +107,8 @@ void VncProxyServer::handleNewConnection()
     connect(m_viewerSocket, &QTcpSocket::disconnected, this, [this](){
         qDebug() << "VncProxyServer viewerSocket disconnected handler";
 
-        m_viewerSocket->deleteLater();
-        m_viewerSocket = nullptr;
+        QObject *s = sender();
+        s->deleteLater();
         emit viewerConnectedChanged(false);
     });
 
