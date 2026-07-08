@@ -82,8 +82,7 @@ void VncProxyServer::handleNewConnection()
 
     if (m_sessionBroker) {
         m_sessionBroker->disconnect();
-        delete m_sessionBroker;
-        m_sessionBroker = nullptr;
+        m_sessionBroker = nullptr; // deleted when m_viewerSocket is deleted
     }
 
     m_viewerSocket = nextPendingConnection();
@@ -94,10 +93,8 @@ void VncProxyServer::handleNewConnection()
         m_viewerSocket->disconnectFromHost();
         if (m_sessionBroker) {
             QTimer::singleShot(1000, [this](){
-                VncSessionBroker* tmp = m_sessionBroker;
-                m_sessionBroker = nullptr;
+                m_sessionBroker = nullptr; // It will be deleted when m_viewerSocket is deleted
                 emit sessionBrokerChanged();
-                delete tmp;
             });
         }
     });

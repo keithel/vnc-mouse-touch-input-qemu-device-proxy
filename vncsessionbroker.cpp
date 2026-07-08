@@ -1,4 +1,5 @@
 #include "vncsessionbroker.h"
+#include <iostream>
 
 VncSessionBroker::VncSessionBroker(QTcpSocket *viewerSocketParent, quint16 deviceVncPort, quint16 deviceUartPort)
     : QObject{viewerSocketParent}
@@ -57,7 +58,9 @@ void VncSessionBroker::disconnect()
 
 void VncSessionBroker::viewerToDevicePump()
 {
-    qDebug() << "viewerToDevicePump";
+    std::cout << ">";
+    std::cout.flush();
+
     if (!m_viewerSocket || !m_deviceVncSocket)
         return;
 
@@ -74,6 +77,9 @@ void VncSessionBroker::viewerToDevicePump()
 
 void VncSessionBroker::deviceToViewerPump()
 {
+    std::cout << "<";
+    std::cout.flush();
+
     if (!m_viewerSocket || !m_deviceVncSocket) {
         QString errStr;
         if (!m_viewerSocket)
