@@ -41,6 +41,8 @@ Six bytes, no checksum, big-endian coordinates. Emitted by
 
 Example — button 1 pressed at (300, 750): `AA 01 01 2C 02 EE`
 
+Releasing at the same point is the same packet with `buttonMask = 0x00`: `AA 00 01 2C 02 EE`
+
 Coordinates are passed through **unscaled**. Because the viewer is looking at the same
 framebuffer the device is rendering, they already match the device's screen resolution.
 
@@ -48,6 +50,32 @@ The channel is **host→device only**; the proxy opens the UART socket `WriteOnl
 never reads from it ([vncsessionbroker.cpp:22](vncsessionbroker.cpp#L22)). There is no
 handshake, no ack and no flow control — the receiver is expected to resync by discarding
 bytes until it sees `0xAA` at packet offset 0.
+
+### Packets are level state, not edges
+
+One packet is emitted per RFB `PointerEvent`, carrying the pointer's *current* position and
+button mask. The proxy never synthesizes a press or a release, never coalesces or rate-limits,
+and sends nothing at all while the pointer is idle. A drag therefore arrives as a run of
+packets with bit 0 set, bracketed by whatever the viewer happened to send.
+
+Consumers must derive edges themselves by comparing each sample against the previous one —
+a press is the first sample whose bit 0 is set after one where it was clear. Do not expect
+distinct "press", "move" and "release" message types; there is only one message type.
+
+### Framing is only as reliable as the transport
+
+The single `0xAA` sync byte is a frame *marker*, not an escape or an unambiguous delimiter:
+there is no checksum, no length field, and **payload bytes may themselves equal `0xAA`** —
+`buttonMask`, either coordinate byte, or both. A receiver that has lost byte alignment can
+therefore resynchronise onto a false `0xAA` inside a payload and decode garbage
+coordinates from then on.
+
+This is safe here only because the transport is a **reliable, lossless, local TCP-backed**
+UART and the packets are fixed length: alignment is correct from the first byte and nothing
+can drop or insert bytes to disturb it, so "sync on `0xAA`, read 6" is sufficient in
+practice. The format is *not* robust to a lossy or resuming link. If you ever put it on a
+real wire, add a length field or checksum, or widen the sync to a 2-byte sequence — for
+local development use it is intentionally minimal.
 
 ## Requirements
 
