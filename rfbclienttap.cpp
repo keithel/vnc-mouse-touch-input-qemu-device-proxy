@@ -98,6 +98,12 @@ bool RfbClientTap::step()
             return false;
 
         if (n < 0) {
+            // We can no longer track message boundaries, so we cannot find any further
+            // pointer events. Relaying continues, but input injection stops until the
+            // viewer reconnects and reset() puts us back at Phase::Version.
+            qWarning() << "Unknown RFB client message type" << quint8(m_buf[0])
+                       << "- stopping tap. Pointer events will no longer be forwarded"
+                          " for the rest of this session.";
             m_tapping = false;
             m_buf.clear();
             return false;
